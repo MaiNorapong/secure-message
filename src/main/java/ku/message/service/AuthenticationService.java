@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class AuthenticationService implements AuthenticationProvider {
     private UserRepository repository;
 
     @Autowired
-    private HashService hashService;
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -27,9 +28,8 @@ public class AuthenticationService implements AuthenticationProvider {
 
         User user = repository.findByUsername(username);
         if (user != null) {
-            String salt = user.getSalt();
-            String hashedInput = hashService.getHashedValue(password, salt);
-            if (user.getPassword().equals(hashedInput)) {
+            /* If encode it creates a new salt so use match */
+            if (passwordEncoder.matches(password, user.getPassword())) {
                 return new UsernamePasswordAuthenticationToken(username, password, new ArrayList<>());
             }
         }
